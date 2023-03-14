@@ -1,0 +1,44 @@
+version: '3.4'
+
+services:
+  mysqldb:
+    container_name: my-mysql
+    image: mysql
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+    expose:
+      - 3306
+    ports:
+      - 3306:3306
+
+  management_mysql:
+    image: phpmyadmin/phpmyadmin
+    container_name: my-management-mysql
+    environment:
+      PMA_HOST: mysqldb
+    links:
+      - mysqldb:database
+    ports:
+      - '8081:80'
+
+  nodeapp:
+    container_name: my-app
+    build: .
+    image: mynodeapp
+    expose:
+      - 3030
+    ports:
+      - 3030:3030
+    environment:
+      - DB_HOST=mysqldb
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+    depends_on:
+      - mysqldb
